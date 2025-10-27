@@ -6,10 +6,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 st.set_page_config(page_title="📄 Chat with PDF", page_icon="🤖")
-st.title("🤖 Chat with Your PDF Document (Improved)")
+st.title("🤖 Chat with Your PDF Document")
 
 # --- Step 1: Load your PDF properly using pdfplumber ---
-pdf_path = "your_document.pdf"
+pdf_path = "NFHS-5_Phase-II_0.pdf"
 text = ""
 with pdfplumber.open(pdf_path) as pdf:
     for page in pdf.pages:
@@ -48,4 +48,5 @@ if query:
     st.write(combined_answer)
 
     st.caption(f"(Top chunk similarity scores: {[round(sims[i], 2) for i in top_idx]})")
+
 
