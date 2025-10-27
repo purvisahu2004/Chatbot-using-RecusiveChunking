@@ -1,6 +1,7 @@
 import streamlit as st
 import pdfplumber
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -48,6 +49,7 @@ if query:
     st.write(combined_answer)
 
     st.caption(f"(Top chunk similarity scores: {[round(sims[i], 2) for i in top_idx]})")
+
 
 
 
