@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 st.set_page_config(page_title="📄 Chat with PDF", page_icon="🤖")
-st.title("🤖 Chat with Your PDF Document")
+st.title("🤖 ChatBot using Recursive Chunking")
 
 # --- Step 1: Load your PDF properly using pdfplumber ---
 pdf_path = "NFHS-5_Phase-II_0.pdf"
@@ -48,5 +48,6 @@ if query:
     st.write(combined_answer)
 
     st.caption(f"(Top chunk similarity scores: {[round(sims[i], 2) for i in top_idx]})")
+
 
 
