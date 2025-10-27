@@ -1,50 +1,51 @@
 import streamlit as st
+import pdfplumber
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from PyPDF2 import PdfReader
 import numpy as np
 
-# --- Streamlit setup ---
 st.set_page_config(page_title="📄 Chat with PDF", page_icon="🤖")
-st.title("🤖 Chat with Your PDF Document (Recursive Chunking)")
+st.title("🤖 Chat with Your PDF Document (Improved)")
 
-# --- Step 1: Load your existing PDF file ---
-# ✅ Replace this with the path of your PDF file
-pdf_path = "NFHS-5_Phase-II_0.pdf"
-
-pdf_reader = PdfReader(pdf_path)
+# --- Step 1: Load your PDF properly using pdfplumber ---
+pdf_path = "your_document.pdf"
 text = ""
-for page in pdf_reader.pages:
-    text += page.extract_text() or ""
+with pdfplumber.open(pdf_path) as pdf:
+    for page in pdf.pages:
+        text += page.extract_text() or ""
 
-st.success("✅ PDF loaded successfully!")
+if not text.strip():
+    st.error("⚠️ No text found! Your PDF might be scanned or image-based.")
+else:
+    st.success("✅ PDF text loaded successfully!")
 
-# --- Step 2: Recursive Chunking ---
+# --- Step 2: Recursive chunking (larger chunk size for more context) ---
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,      # each chunk ≈ 500 characters
-    chunk_overlap=50,    # small overlap to preserve context
+    chunk_size=1000,   # increased size
+    chunk_overlap=100,
     separators=["\n\n", "\n", ".", " ", ""]
 )
 chunks = splitter.split_text(text)
-st.write(f"📚 Created **{len(chunks)} semantic chunks** from your PDF.")
 
-# --- Step 3: Create embeddings for chunks ---
+st.write(f"📚 Created **{len(chunks)}** chunks.")
+
+# --- Step 3: Embedding setup ---
 model = SentenceTransformer('all-MiniLM-L6-v2')
 embeddings = model.encode(chunks)
 
 # --- Step 4: Take user question ---
-query = st.text_input("💬 Ask a question about NFHW survey:")
+query = st.text_input("💬 Ask a question about your PDF:")
 
-# --- Step 5: Find the most similar chunk ---
+# --- Step 5: Find the top 3 most similar chunks ---
 if query:
     query_vec = model.encode([query])
-    sims = cosine_similarity(query_vec, embeddings)
-    best_idx = np.argmax(sims)
-    best_score = sims[0][best_idx]
+    sims = cosine_similarity(query_vec, embeddings)[0]
+    top_idx = np.argsort(sims)[-3:][::-1]  # top 3 chunks
 
-    if best_score < 0.3:
-        st.info("🤖 Sorry, I couldn’t find relevant information in the document.")
-    else:
-        st.write("🤖 **Answer:**", chunks[best_idx])
-        st.caption(f"(Similarity Score: {best_score:.2f})")
+    st.subheader("🤖 Answer:")
+    combined_answer = " ".join([chunks[i] for i in top_idx])
+    st.write(combined_answer)
+
+    st.caption(f"(Top chunk similarity scores: {[round(sims[i], 2) for i in top_idx]})")
+
